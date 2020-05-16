@@ -28,7 +28,7 @@ module.exports = class Match extends EventEmitter{
 			this.players[i].cards = shuffledCards.slice(i*13,i*13+13);
 			this.players[i].wonCards = [];
 		}
-		this.currentGame = {rounds:[]};
+		this.currentGame = {rounds:[], heartsBroken: false};
 		this.games.push(this.currentGame);
 		if(this.games.length%this.players.length){
 			this.stage = "playing";
@@ -89,32 +89,42 @@ module.exports = class Match extends EventEmitter{
 		}
 	}
 
+	isHeartsBroken() {
+		return this.currentGame.rounds.map(r=>r.cards.map(c=>c.color==="heart").reduce((a,b)=>a||b,false)).reduce((a,b)=>a||b,false);
+	}
+
+	breakHearts() {
+		this.currentGame.heartsBroken = true;
+		this.notifyPlayers({event:"heartsBroken"});
+	}
+
 	playCard(player,card){
 		if(this.stage !== "playing") throw new Error("Sorry we're taking a break - can we wait a few minutes?");
-		if(player !== (this.currentRound.startedBy+this.currentRound.cards.length)%this.players.length) throw new Error("Hey buddy its not your turn");
+		if (!this.isPlayersTurn(player)) throw new Error("Hey buddy its not your turn");
 		if(!this.players[player].cards.includes(card)) throw new Error("That's uh... not your card..");
 
 		var isFirstRoundOfGame = this.currentGame.rounds.length === 1;
 		var isFirstCardOfRound = !this.currentRound.cards.length;
-		var isHeartsBroken = this.currentGame.rounds.map(r=>r.cards.map(c=>c.color==="heart").reduce((a,b)=>a||b,false)).reduce((a,b)=>a||b,false);
+		if (!this.currentGame.heartsBroken && this.isHeartsBroken())
+			this.breakHearts();
 
-		if(isFirstRoundOfGame && (card.color === "heart" || (card.color === "spade" && card.kind === "queen"))) throw new Error("Sorry - can't break hearts on the first round (yes that includes the queen)");
-		if(isFirstCardOfRound){
-			if(isFirstRoundOfGame && card !== beginningCard) throw new Error("It's the first round and you you have the Two of Clubs - you have to play it!");
-		 	if(!isHeartsBroken && card.color==="heart" && this.players[player].cards.filter(c=>c.color==="heart").length !== this.players[player].cards.length) throw new Error("Can't lead with");
-		}else{
-			if(card.color !== this.currentRound.cards[0].color && this.players[player].cards.filter(c=>c.color===this.currentRound.cards[0].color).length) throw new Error("must play same color");
+		if (isFirstRoundOfGame && (card.color === "heart" || (card.color === "spade" && card.kind === "queen"))) throw new Error("Sorry - can't break hearts on the first round (yes that includes the queen)");
+		if (isFirstCardOfRound) {
+			if (isFirstRoundOfGame && card !== beginningCard) throw new Error("It's the first round and you you have the Two of Clubs - you have to play it!");
+		 	if (!this.currentGame.heartsBroken && card.color === "heart" && this.players[player].cards.filter(c=>c.color==="heart").length !== this.players[player].cards.length) throw new Error("Can't lead with hearts if they're not broken and you've got other options!");
+		} else {
+			if(card.color !== this.currentRound.cards[0].color && this.players[player].cards.filter(c=>c.color===this.currentRound.cards[0].color).length) throw new Error("You have to follow the led suit, which is "+this.currentRound.cards[0].color+"s right now.");
 		}
 
-		this.currentRound.cards.push(card);
-		this.players[player].cards.splice(this.players[player].cards.indexOf(card),1);
+		this.currentRound.cards.push(card); 											// put the card on the board
+		this.players[player].cards.splice(this.players[player].cards.indexOf(card),1); 	// take it out of the playrs cards
 
 		this.notifyPlayers({
 			event:"playedCard",
 			card:card
 		});
 
-		if(this.currentRound.cards.length === this.players.length){
+		if(this.currentRound.cards.length === this.players.length) { // handle trick summary
 			var startColor = this.currentRound.cards[0].color;
 			var highest = 0;
 			for(var i = 1; i < this.currentRound.cards.length; i++){
@@ -242,5 +252,16 @@ module.exports = class Match extends EventEmitter{
 		if(player.connection){
 			player.connection.send(JSON.stringify(event));
 		}
+	}
+
+	/**
+	 * currentRound has "startedBy (seat index), cards (played currently), add cards played + who started and check against the players seat
+	 * @returns {boolean}
+	 */
+	isPlayersTurn(player) {
+		if (this.currentRound.startedBy !== player && this.currentRound.cards.length === 0)
+			return false;
+
+		return (this.currentRound.startedBy + this.currentRound.cards.length) % this.players.length === player;
 	}
 }

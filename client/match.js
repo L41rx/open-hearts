@@ -95,11 +95,14 @@ module.exports = class Match extends react.Component{
 		this.bot.start();
 		alert("Handing over control to the bot");
 		console.log("In the future, try running bots in an incognito/private window or on a separate browser session. When you refresh a match it loads your username from local browser storage, so if you're not careful you'll replace your session with the bots!");
+		this.client.emit("change");
+		console.log(this.bot.isPlaying);
 	}
 
 	resumePlayerControl() {
 		this.bot.stop();
 		alert("Taking back manual control of the game");
+		this.client.emit("change");
 	}
 
 	returnToMatchlist() {

@@ -47,13 +47,17 @@ module.exports = class HeartsClient extends EventEmitter{
 					});
 					this.emit("change");
 					break;
+				case "heartsBroken":
+					this.currentGame.heartsBroken = true;
+					this.emit("change");
+					break;
 				case "playedCard":
 					this.currentRound.cards.push(data.card);
 					var index = this.cards.findIndex(c=>c.color===data.card.color&&c.kind===data.card.kind);
 					if (index >= 0) {
 						this.cards.splice(index, 1);
 					}
-					if(this.currentRound.cards.length === this.players){
+					if(this.currentRound.cards.length === this.players){ // also handle trick?
 						this.delay = new Promise(s=>setTimeout(s,1000));
 						this.emit("change");
 						await this.delay;

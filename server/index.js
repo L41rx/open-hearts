@@ -53,7 +53,7 @@ app.use(
 </html>`;
 
 		}),
-		route.get("/matches/:match",async (ctx,match)=>{ // match
+		route.get("/matches/:match",async (ctx,match)=>{ // match. sent to from /api/
 			ctx.body =
 `<html>
 	<head>
@@ -79,6 +79,7 @@ app.use(
 				}
 			}))
 		}),
+		// create new match...
 		route.post("/api/matches",async ctx=>{
 			var id = new Date().getTime();
 			var match = new Match();
@@ -88,11 +89,13 @@ app.use(
 			});
 			ctx.body = id+"";
 		}),
-		route.get("/api/matches/:match",async (ctx,match)=>{
+		// websocket connection made in client.js constructor...
+		route.get("/api/matches/:match",async (ctx,match)=>{ // this is the join code actually
 			match = matches[match];
 			if(!match) ctx.throw(404);
 			var connection = await ctx.upgrade();
-			match.takeSeat(connection);
+			match.takeSeat(connection); // there is takeSeat method and takeSeat event ! two different things. b careful
+										// the connection here is listened on for a takeSeat after to ensure not just anyone can pop in and nab it
 			await(new Promise(()=>{}));
 		})
 	])

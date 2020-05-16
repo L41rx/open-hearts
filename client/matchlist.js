@@ -26,7 +26,7 @@ module.exports = class MatchList extends react.Component{
 						react.createElement("th",{},"game #")
 					)
 				),
-				react.createElement("tbody",{}, (this.matches||[]).map(m=>
+				react.createElement("tbody",{}, (this.matches||[]).map(m=> // loop matches
 					react.createElement("tr",{onClick:this.joinGame.bind(this,m.id)},
 						react.createElement("td",{},m.players+"/4"),
 						react.createElement("td",{},m.game+"")
@@ -40,7 +40,7 @@ module.exports = class MatchList extends react.Component{
 		)
 	}
 	async createGame(){
-		var id = await (await fetch("/api/matches",{method:"POST"})).text();
+		var id = await (await fetch("/api/matches",{method:"POST"})).text(); // go to API, which redirects to actual match after
 		this.joinGame(id);
 	}
 	async joinGame(id){

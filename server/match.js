@@ -1,7 +1,8 @@
 var EventEmitter = require("events").EventEmitter;
 var allCards = require("./cards");
+var Bot = require("../client/bot");
 
-var beginningCard = allCards.filter(c=>c.color=="club"&&c.kind=="2")[0];
+var beginningCard = allCards.filter(c=>c.color==="club"&&c.kind==="2")[0];
 
 module.exports = class Match extends EventEmitter{
 	constructor(){
@@ -16,6 +17,7 @@ module.exports = class Match extends EventEmitter{
 		this.games = [];
 		this.deal();
 	}
+
 	deal(){
 		var cards = this.cards.slice(0);
 		var shuffledCards = [];
@@ -39,14 +41,15 @@ module.exports = class Match extends EventEmitter{
 			this.notifyPlayer(player,{
 				event:"newGame",
 				cards:player.cards,
-				startedBy: this.stage=="playing"?this.currentRound.startedBy:undefined
+				startedBy: this.stage==="playing"?this.currentRound.startedBy:undefined
 			});
 		}
 	}
+
 	passCards(player,cards){
-		if(this.stage != "passing") throw new Error("game is not in passing stage");
+		if(this.stage !== "passing") throw new Error("game is not in passing stage");
 		if(this.players[player].passedCards) throw new Error("player already has passed cards for this round");
-		if(cards.length != 3) throw new Error("must pass exactly 3 cards");
+		if(cards.length !== 3) throw new Error("must pass exactly 3 cards");
 
 		for(var card of cards){
 			if(!this.players[player].cards.includes(card)) throw new Error("cannot pass not owned cards");
@@ -55,7 +58,7 @@ module.exports = class Match extends EventEmitter{
 
 		this.players[player].passedCards = cards;
 
-		if(this.players.filter(p=>p.passedCards).length == this.players.length){
+		if(this.players.filter(p=>p.passedCards).length === this.players.length){
 			var offset = this.games.length%this.players.length;
 			for(var i = 0; i < this.players.length; i++){
 				var passingPlayer = this.players[i];
@@ -76,7 +79,7 @@ module.exports = class Match extends EventEmitter{
 
 			this.stage = "playing";
 
-			for(var player of this.players){
+			for (var player of this.players){
 				this.notifyPlayer(player,{
 					event:"exchangedCards",
 					cards:player.cards,
@@ -85,21 +88,22 @@ module.exports = class Match extends EventEmitter{
 			}
 		}
 	}
+
 	playCard(player,card){
-		if(this.stage != "playing") throw new Error("Sorry we're taking a break - can we wait a few minutes?");
-		if(player != (this.currentRound.startedBy+this.currentRound.cards.length)%this.players.length) throw new Error("Hey buddy its not your turn");
+		if(this.stage !== "playing") throw new Error("Sorry we're taking a break - can we wait a few minutes?");
+		if(player !== (this.currentRound.startedBy+this.currentRound.cards.length)%this.players.length) throw new Error("Hey buddy its not your turn");
 		if(!this.players[player].cards.includes(card)) throw new Error("That's uh... not your card..");
 
 		var isFirstRoundOfGame = this.currentGame.rounds.length === 1;
 		var isFirstCardOfRound = !this.currentRound.cards.length;
-		var isHeartsBroken = this.currentGame.rounds.map(r=>r.cards.map(c=>c.color=="heart").reduce((a,b)=>a||b,false)).reduce((a,b)=>a||b,false);
+		var isHeartsBroken = this.currentGame.rounds.map(r=>r.cards.map(c=>c.color==="heart").reduce((a,b)=>a||b,false)).reduce((a,b)=>a||b,false);
 
-		if(isFirstRoundOfGame && (card.color == "heart" || (card.color == "spade" && card.kind == "queen"))) throw new Error("Sorry - can't break hearts on the first round (yes that includes the queen)");
+		if(isFirstRoundOfGame && (card.color === "heart" || (card.color === "spade" && card.kind === "queen"))) throw new Error("Sorry - can't break hearts on the first round (yes that includes the queen)");
 		if(isFirstCardOfRound){
-			if(isFirstRoundOfGame && card != beginningCard) throw new Error("It's the first round and you you have the Two of Clubs - you have to play it!");
-		 	if(!isHeartsBroken && card.color=="heart" && this.players[player].cards.filter(c=>c.color=="heart").length != this.players[player].cards.length) throw new Error("Can't lead with");
+			if(isFirstRoundOfGame && card !== beginningCard) throw new Error("It's the first round and you you have the Two of Clubs - you have to play it!");
+		 	if(!isHeartsBroken && card.color==="heart" && this.players[player].cards.filter(c=>c.color==="heart").length !== this.players[player].cards.length) throw new Error("Can't lead with");
 		}else{
-			if(card.color != this.currentRound.cards[0].color && this.players[player].cards.filter(c=>c.color==this.currentRound.cards[0].color).length) throw new Error("must play same color");
+			if(card.color !== this.currentRound.cards[0].color && this.players[player].cards.filter(c=>c.color===this.currentRound.cards[0].color).length) throw new Error("must play same color");
 		}
 
 		this.currentRound.cards.push(card);
@@ -110,11 +114,11 @@ module.exports = class Match extends EventEmitter{
 			card:card
 		});
 
-		if(this.currentRound.cards.length == this.players.length){
+		if(this.currentRound.cards.length === this.players.length){
 			var startColor = this.currentRound.cards[0].color;
 			var highest = 0;
 			for(var i = 1; i < this.currentRound.cards.length; i++){
-				if(this.currentRound.cards[i].color == startColor && allCards.kinds.indexOf(this.currentRound.cards[i].kind) > allCards.kinds.indexOf(this.currentRound.cards[highest].kind)) highest = i;
+				if(this.currentRound.cards[i].color === startColor && allCards.kinds.indexOf(this.currentRound.cards[i].kind) > allCards.kinds.indexOf(this.currentRound.cards[highest].kind)) highest = i;
 			}
 			this.currentRound.wonBy = (this.currentRound.startedBy+highest)%this.players.length;
 
@@ -122,12 +126,12 @@ module.exports = class Match extends EventEmitter{
 				var playerPoints = this.players.map((p,i)=>
 					this.games.map(g=>{
 						var playerPoints = this.players.map((p,i)=>
-							g.rounds.filter(r=>r.wonBy==i).map(r=>
-								r.cards.map(c=>c.color=="heart"?1:((c.color=="spade"&&c.kind=="queen")?13:0)).reduce((a,b)=>a+b,0)
+							g.rounds.filter(r=>r.wonBy===i).map(r=>
+								r.cards.map(c=>c.color==="heart"?1:((c.color==="spade"&&c.kind==="queen")?13:0)).reduce((a,b)=>a+b,0)
 							).reduce((a,b)=>a+b,0)
 						);
 						var victoryPlayer = playerPoints.indexOf(26);
-						return victoryPlayer < 0?playerPoints[i]:(victoryPlayer==i?0:26);
+						return victoryPlayer < 0?playerPoints[i]:(victoryPlayer===i?0:26);
 					}).reduce((a,b)=>a+b,0)
 				)
 				if(!playerPoints.filter(p=>p>=100).length){
@@ -149,33 +153,35 @@ module.exports = class Match extends EventEmitter{
 		}
 	}
 
+	// An API ping hits this to let the server know somebody is about to connect.
 	takeSeat(connection){
-		connection.once("message",msg=>{
+		connection.once("message",msg=>{ // listen for one message...? https://stackoverflow.com/a/57071992/13400450
 			msg = JSON.parse(msg);
-			if(msg.action != "takeSeat"){
-				connection.send(JSON.stringify({event:"error",message:"must take seat at first"}));
+			if(msg.action !== "takeSeat"){
+				connection.send(JSON.stringify({event:"error",message:"Welcome to the game. Maybe take a seat first?"}));
 				connection.close();
 			}
 			if(typeof msg.username != "string" || msg.username.length < 1 || msg.username.length > 50){
-				connection.send(JSON.stringify({event:"error",message:"username must be a string of length 1-50"}));
+				connection.send(JSON.stringify({event:"error",message:"Your name doesn't make any sense. Could you pick a better one?"}));
 				connection.close();
 			}
-			var seat = this.players.findIndex(p=>!p.connection);
+
+			var seat = this.players.findIndex(p=>!p.connection); // returns index first open seat or -1 (open = players connection is true)
 			if(seat < 0){
-				connection.send(JSON.stringify({event:"error",message:"game is full"}));
+				connection.send(JSON.stringify({event:"error",message:"Sorry, this games full. Maybe a spot'll open up in a bit?"}));
 				connection.close();
 				return;
 			}
-
-			// this is probably how we can add bots
 			this.players[seat].username = msg.username;
+
 			this.notifyPlayers({
 				event:"seatTaken",
 				seat:seat,
 				username:msg.username
+				//connection: connection // i am here
 			});
 			this.players[seat].connection = connection;
-			connection.on("close",()=>{
+			connection.on("close",()=>{ // listen for more events from this connection too
 				delete this.players[seat].connection;
 				delete this.players[seat].username;
 				this.notifyPlayers({
@@ -216,14 +222,14 @@ module.exports = class Match extends EventEmitter{
 
 	mapCard(card){
 		if(typeof card != "object") throw new Error("card must be an object");
-		card = this.cards.filter(c=>c.color==card.color&&c.kind==card.kind)[0];
+		card = this.cards.filter(c=>c.color===card.color&&c.kind===card.kind)[0];
 		if(!card) throw new Error("card does not exist");
 		return card;
 	}
 
 	findGameStarter(){
 		for(var i = 0; i < this.players.length; i++){
-			if(this.players[i].cards.filter(c=>c==beginningCard).length) return i;
+			if(this.players[i].cards.filter(c=>c===beginningCard).length) return i;
 		}
 	}
 

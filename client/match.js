@@ -10,11 +10,13 @@ module.exports = class Match extends react.Component{
 		this.client = new Client(this.props.id,localStorage["username"]||"lain");
 		this.client.on("change",()=>this.forceUpdate());
 		this.selectedCards = [];
+
+		this.bot = new Bot();
 	}
 	render(){
 		return react.createElement("div",{className:"game"},
 			react.createElement("div",{className:"table"},new Array(this.client.players).fill(0).map((v,i)=>{ // loop over players, value index (0, i++)
-				return react.createElement("div",{key:i,className:"player"+(i==(this.client.currentRound&&(this.client.currentRound.startedBy+this.client.currentRound.cards.length)%this.client.players) && this.client.stage == "playing"?" active":"")},
+				return react.createElement("div",{key:i,className:"player"+(this.client.isActive(i) ? " active" : "")},
 					// For each player create a div with their name and score
 					(()=>{
 						if(!this.client.connected) return null; // why are they always connected?
@@ -27,21 +29,25 @@ module.exports = class Match extends react.Component{
 							matchPoints[i]+" ("+gamePoints[i]+")");
 					})(),
 					(()=>{
-						if(this.client.stage != "playing") return null;
+						if(this.client.stage !== "playing") return null;
 						var card = this.client.currentRound && this.client.currentRound.cards[(this.client.players+i-this.client.currentRound.startedBy)%this.client.players];
 						if(!card) return null;
 						return react.createElement(Card,{color:card.color,kind:card.kind,key:card.color+'-'+card.kind});
 					})()
 				)
 			})),
-			this.client.stage=="passing"?react.createElement("h2",{},"Pass 3 cards to "+this.renderUsername((this.client.seat+this.client.games.length)%this.client.players)):null,
+			this.client.stage === "passing"?react.createElement("h2",{},"Pass 3 cards to "+this.renderUsername((this.client.seat+this.client.games.length)%this.client.players)):null,
 			this.client.connected?react.createElement("div",{className:"hand"}, // this is the hand!!
 				this.sortCards(this.client.cards).map(c=>
 					react.createElement(Card,{color:c.color,kind:c.kind,className:(this.selectedCards.includes(c)?"active":""),onClick:this.clickCard.bind(this,c), key:c.color+'-'+c.kind})
 				)
 			):null,
-			// todo (admin check?)
-			react.createElement("button", {className:"match-control", onClick:this.addBot.bind(this)}, "Add bot"),
+			(()=>{
+				if(this.bot.isPlaying)
+					return react.createElement("button", {className:"match-control", onClick:this.resumePlayerControl.bind(this)}, "Take control");
+				else
+					return react.createElement("button", {className:"match-control", onClick:this.handOverBot.bind(this)}, "Let the bot play");
+			})(),
 			this.client.connected?null:"connecting..."
 		)
 	}
@@ -52,7 +58,7 @@ module.exports = class Match extends react.Component{
 
 	sortCards(cards){
 		return cards.slice().sort((a,b)=>{
-			if(a.color == b.color){
+			if(a.color === b.color){
 				return allCards.kinds.indexOf(a.kind)-allCards.kinds.indexOf(b.kind);
 			}else{
 				return allCards.colors.indexOf(a.color)-allCards.colors.indexOf(b.color);
@@ -62,7 +68,7 @@ module.exports = class Match extends react.Component{
 
 
 	clickCard(card){
-		if(this.client.stage == "passing"){
+		if(this.client.stage === "passing"){
 			var index = this.selectedCards.indexOf(card);
 			if(index < 0){
 				this.selectedCards.push(card);
@@ -70,16 +76,23 @@ module.exports = class Match extends react.Component{
 				this.selectedCards.splice(index,1);
 			}
 			this.forceUpdate();
-			if(this.selectedCards.length == 3){
+			if(this.selectedCards.length === 3){
 				this.client.passCards(this.selectedCards);
 			}
-		}else if(this.client.stage == "playing"){
+		}else if(this.client.stage === "playing"){
 			this.selectedCards = [];
 			this.client.playCard(card);
 		}
 	}
 
-	addBot() {
-		alert("wwwwwwwwww");
+	handOverBot() {
+		this.bot.start();
+		alert("Handing over control to the bot");
+		console.log("In the future, try running bots in an incognito/private window or on a separate browser session. When you refresh a match it loads your username from local browser storage, so if you're not careful you'll replace your session with the bots!");
+	}
+
+	resumePlayerControl() {
+		this.bot.stop();
+		alert("Taking back manual control of the game");
 	}
 }

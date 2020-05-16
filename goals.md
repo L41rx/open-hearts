@@ -6,6 +6,7 @@ Queen is worth how much
 try to actually draw the board layout properly lmao
 customizeable card backs
 better notification when a player leaves
+Spectating
 all hearts -> drop player by 'x'?
 all hearts -> gain else by 'x'?
 implement round summary

@@ -11,19 +11,19 @@ module.exports = class MatchList extends react.Component{
 	}
 	render(){
 		return react.createElement("div",{className:"container"},
-			react.createElement("h1",{},"Open Hearts"),
+			react.createElement("h1",{className:"lain-title"},"open hearts"),
 			react.createElement("div",{className:"form-group row"},
-				react.createElement("label",{className:"col-form-label col-sm-4"},"Spielername"),
+				react.createElement("label",{className:"col-form-label col-sm-4"},"username"),
 				react.createElement("div",{className:"col-sm-8"},
-					react.createElement("input",{className:"form-control",value:localStorage["username"]||"Spieler",onChange:v=>{localStorage["username"] = v.target.value;this.forceUpdate();}})
+					react.createElement("input",{className:"form-control",value:localStorage["username"]||"lain",onChange:v=>{localStorage["username"] = v.target.value;this.forceUpdate();}})
 				)
 			),
-			react.createElement("h2",{},"Spielliste"),
+			react.createElement("h2",{},"match list"),
 			react.createElement("table",{className:"table table-striped table-hover"},
 				react.createElement("thead",{},
 					react.createElement("tr",{},
-						react.createElement("th",{},"Spieler"),
-						react.createElement("th",{},"Spiel")
+						react.createElement("th",{},"player count"),
+						react.createElement("th",{},"game #")
 					)
 				),
 				react.createElement("tbody",{}, (this.matches||[]).map(m=>
@@ -34,8 +34,8 @@ module.exports = class MatchList extends react.Component{
 				))
 			),
 			react.createElement("div",{className:"float-right"},
-				react.createElement("button",{className:"btn btn-primary",onClick:this.loadGames.bind(this)},"Liste aktualisieren"),
-				react.createElement("button",{className:"btn btn-primary ml-1",onClick:this.createGame.bind(this)},"Neues Spiel")
+				react.createElement("button",{className:"btn btn-primary",onClick:this.loadGames.bind(this)},"refresh"),
+				react.createElement("button",{className:"btn btn-primary ml-1",onClick:this.createGame.bind(this)},"new game")
 			)
 		)
 	}

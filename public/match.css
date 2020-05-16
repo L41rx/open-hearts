@@ -6,10 +6,12 @@ html,body{
 }
 .game{
 	clear:both;
-	width:100vw;
-	height:100vh;
+	width:calc(100vw - 40px);
+	height:calc(100vh - 40px);
+	padding: 20px;
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	background:green;
 }
 .table{
@@ -53,4 +55,8 @@ h2{
 	color:white;
 	width:100%;
 	text-align:center;
+}
+
+.match-control {
+	max-width: 100px;
 }

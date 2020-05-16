@@ -12,7 +12,7 @@ var Match = require("./match");
 
 var config = JSON.parse(fs.readFileSync("./config.json")+"");
 
-var build = browserify({cache:{},packageCache:{},entries:[path.resolve(__dirname,"../client/index.js")],plugin:[watchify]});
+var build = browserify({cache:{},packageCache:{},entries:[path.resolve(__dirname,"../client/index.js")],plugin:[watchify]}); // build client.js...
 var client = "";
 
 function bundle(){
@@ -35,9 +35,9 @@ app.use(mount("/public",Static("./public")));
 app.use(
 	compose([
 		route.get("/client.js",async ctx=>{
-			ctx.body = client;
+			ctx.body = client; // built client.js
 		}),
-		route.get("/",async ctx=>{
+		route.get("/",async ctx=>{ // matchlist
 			ctx.body =
 `<html>
 	<head>
@@ -47,13 +47,13 @@ app.use(
 	<body>
 		<div id="container"></div>
 		<script>
-			reactDom.render([react.createElement(MatchList)],document.getElementById("container"));
+			reactDom.render([react.createElement(MatchList, {key:1})],document.getElementById("container"));
 		</script>
 	</body>
 </html>`;
 
 		}),
-		route.get("/matches/:match",async (ctx,match)=>{
+		route.get("/matches/:match",async (ctx,match)=>{ // match
 			ctx.body =
 `<html>
 	<head>
@@ -64,11 +64,11 @@ app.use(
 	<body>
 		<div id="container"></div>
 		<script>
-			reactDom.render([react.createElement(Match,{id:"${match}"})],document.getElementById("container"));
+			reactDom.render([react.createElement(Match,{id:"${match}", key:"${match}"})],document.getElementById("container"));
 		</script>
 	</body>
 </html>`;
-		}),
+		}), // APIS
 		route.get("/api/matches",async ctx=>{
 			ctx.body = JSON.stringify(Object.keys(matches).map(id=>{
 				var match = matches[id];

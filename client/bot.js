@@ -48,8 +48,8 @@ module.exports = class Bot{
 
 		return cards.slice(0).reverse().findIndex(c=>c.color == colorsByHighestLowestCard[0]);
 
-		//pass any card
-		return 0;
+		// pass any card
+		// return 0;
 	}
 
 	playCard(){

@@ -86,18 +86,18 @@ module.exports = class Match extends EventEmitter{
 		}
 	}
 	playCard(player,card){
-		if(this.stage != "playing") throw new Error("game is not in playing stage");
-		if(player != (this.currentRound.startedBy+this.currentRound.cards.length)%this.players.length) throw new Error("player is not in turn");
-		if(!this.players[player].cards.includes(card)) throw new Error("cannot play not owned card");
+		if(this.stage != "playing") throw new Error("Sorry we're taking a break - can we wait a few minutes?");
+		if(player != (this.currentRound.startedBy+this.currentRound.cards.length)%this.players.length) throw new Error("Hey buddy its not your turn");
+		if(!this.players[player].cards.includes(card)) throw new Error("That's uh... not your card..");
 
 		var isFirstRoundOfGame = this.currentGame.rounds.length === 1;
 		var isFirstCardOfRound = !this.currentRound.cards.length;
 		var isHeartsBroken = this.currentGame.rounds.map(r=>r.cards.map(c=>c.color=="heart").reduce((a,b)=>a||b,false)).reduce((a,b)=>a||b,false);
 
-		if(isFirstRoundOfGame && (card.color == "heart" || (card.color == "spade" && card.kind == "queen"))) throw new Error("must not play hearts or the spade queen on first round of game");
+		if(isFirstRoundOfGame && (card.color == "heart" || (card.color == "spade" && card.kind == "queen"))) throw new Error("Sorry - can't break hearts on the first round (yes that includes the queen)");
 		if(isFirstCardOfRound){
-			if(isFirstRoundOfGame && card != beginningCard) throw new Error("must play club 2 as first card in the first round");
-		 	if(!isHeartsBroken && card.color=="heart" && this.players[player].cards.filter(c=>c.color=="heart").length != this.players[player].cards.length) throw new Error("hearts is not broken yet");
+			if(isFirstRoundOfGame && card != beginningCard) throw new Error("It's the first round and you you have the Two of Clubs - you have to play it!");
+		 	if(!isHeartsBroken && card.color=="heart" && this.players[player].cards.filter(c=>c.color=="heart").length != this.players[player].cards.length) throw new Error("Can't lead with");
 		}else{
 			if(card.color != this.currentRound.cards[0].color && this.players[player].cards.filter(c=>c.color==this.currentRound.cards[0].color).length) throw new Error("must play same color");
 		}
@@ -167,6 +167,7 @@ module.exports = class Match extends EventEmitter{
 				return;
 			}
 
+			// this is probably how we can add bots
 			this.players[seat].username = msg.username;
 			this.notifyPlayers({
 				event:"seatTaken",

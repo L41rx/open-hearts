@@ -5,10 +5,10 @@ module.exports = class HeartsClient extends EventEmitter{
 	constructor(id,username){
 		super();
 		this.connected = false;
-		this.connection = new WebSocket((location.protocol=="https:"?"wss":"ws")+"://"+location.host+"/api/matches/"+id);
+		this.connection = new WebSocket((location.protocol=="https:"?"wss":"ws")+"://"+location.host+"/api/matches/"+id); // socket is ID indexed by game
 		this.delay = Promise.resolve(true);
 		this.connection.onopen = ()=>{
-			this.connection.send(JSON.stringify({action:"takeSeat",username:username}));
+			this.connection.send(JSON.stringify({action:"takeSeat",username:username})); // when the client constructs it sends the takeSeat event with username
 		}
 		this.connection.onmessage = async msg=>{
 			await this.delay;
@@ -50,8 +50,8 @@ module.exports = class HeartsClient extends EventEmitter{
 				case "playedCard":
 					this.currentRound.cards.push(data.card);
 					var index = this.cards.findIndex(c=>c.color==data.card.color&&c.kind==data.card.kind);
-					if(index>=0){
-						this.cards.splice(index,1);
+					if (index >= 0) {
+						this.cards.splice(index, 1);
 					}
 					if(this.currentRound.cards.length == this.players){
 						this.delay = new Promise(s=>setTimeout(s,1000));

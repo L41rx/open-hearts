@@ -27,6 +27,16 @@ build.on("update",bundle);
 
 var matches = {};
 
+// Sorry. Where should I put this?
+function getParameterByName(name, url) {;
+	name = name.replace(/[\[\]]/g, '\\$&');
+	var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+		results = regex.exec(url);
+	if (!results) return null;
+	if (!results[2]) return '';
+	return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
 var app = new Koa();
 upgrade(app);
 app.use(mount("/public/cardsJS",Static("./node_modules/cardsJS/dist")))
@@ -53,7 +63,14 @@ app.use(
 </html>`;
 
 		}),
-		route.get("/matches/:match",async (ctx,match)=>{ // match. sent to from /api/
+		route.get("/matches/:match",async (ctx,match)=>{ // just joining a match
+			var username = getParameterByName("username", ctx.request.url);
+			var bot = getParameterByName("bot", ctx.request.url);
+
+			if (bot === null || bot === "false") bot = false;
+			if (bot === "true") bot = true;
+			if (username === null) username = "Lain";
+
 			ctx.body =
 `<html>
 	<head>
@@ -64,7 +81,7 @@ app.use(
 	<body>
 		<div id="container"></div>
 		<script>
-			reactDom.render([react.createElement(Match,{id:"${match}", key:"${match}"})],document.getElementById("container"));
+			reactDom.render([react.createElement(Match,{id:"${match}", username:"${username}", bot:"${bot}", key:"${match}"})],document.getElementById("container"));
 		</script>
 	</body>
 </html>`;

@@ -8,13 +8,13 @@ module.exports = class Bot{
 	}
 
 	start() {
-		this.client.addEventListener("change",this.play.bind(this)); // i used this instead of 'on' is it ok?
+		this.client.on("change",this.play.bind(this)); // i used this instead of 'on' is it ok?
 		this.isPlaying = true;
 		// https://github.com/microsoft/TypeScript/issues/32210#issue-463080936
 	}
 
 	stop() {
-		this.client.removeEventListener("change",this.play.bind(this));
+		this.client.off("change",this.play.bind(this));
 		this.isPlaying = false;
 	}
 
@@ -41,6 +41,9 @@ module.exports = class Bot{
 	}
 
 	pickCard(cards){
+		console.log("Picking a card!");
+		console.log(cards);
+
 		// if we have the spade queen and we have only 3 or less spade cards in total, pass her
 		var spadeQueen = cards.filter(c=>c.color === "spade" && c.kind==="queen").length>0;
 		var spadeCardCount = cards.filter(c=>c.color === "spade").length;
@@ -69,10 +72,12 @@ module.exports = class Bot{
 	}
 
 	// lol idk if the logic is OK here
+	/**
+	 * currentRound has "startedBy (seat index), cards (played currently)
+	 * @returns {boolean}
+	 */
 	isPlayersTurn() {
-		console.log("Determing if its the players turn")
-		console.log(this.client.currentRound, this.client.players, this.client.seat);
-		console.log(!(this.client.currentRound.startedBy + this.client.currentRound.cards.length)%this.client.players !== this.client.seat);
-		return !(this.client.currentRound.startedBy + this.client.currentRound.cards.length)%this.client.players !== this.client.seat;
+		// otherwise
+		return (this.client.currentRound.startedBy + this.client.currentRound.cards.length) % this.client.players === this.client.seat;
 	}
 }

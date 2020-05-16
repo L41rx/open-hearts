@@ -36,14 +36,28 @@ module.exports = class MatchList extends react.Component{
 			react.createElement("div",{className:"float-right"},
 				react.createElement("button",{className:"btn btn-primary",onClick:this.loadGames.bind(this)},"refresh"),
 				react.createElement("button",{className:"btn btn-primary ml-1",onClick:this.createGame.bind(this)},"new game")
-			)
+			),
+			react.createElement("button", {className:"match-control",onClick:this.createBotGame.bind(this)}, "create bot game")
 		)
 	}
-	async createGame(){
-		var id = await (await fetch("/api/matches",{method:"POST"})).text(); // go to API, which redirects to actual match after
-		this.joinGame(id);
+	async createGame() {
+		var id = await (await fetch("/api/matches",{method:"POST"})).text();
+		this.joinGame(id, localStorage["username"]||"Lain");
 	}
-	async joinGame(id){
-		location = "/matches/"+id;
+
+	async joinGame(id, username) {
+		location = "/matches/"+id+"?username="+username;
+	}
+
+	async createBotGame() {
+		var id = await (await fetch("/api/matches",{method:"POST"})).text(); // make new game
+		this.addBot(id, "Alice");
+		this.addBot(id, "Reika");
+		this.addBot(id, "Julie");
+		this.joinGame(id, localStorage["username"]||"lain");
+	}
+
+	async addBot(id, username) {
+		window.open("/matches/"+id+"?bot=true&username="+username);
 	}
 }

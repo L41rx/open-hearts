@@ -7,11 +7,15 @@ var Bot = require("./bot");
 module.exports = class Match extends react.Component{
 	constructor(p){
 		super(p);
-		this.client = new Client(this.props.id,localStorage["username"]||"lain");
+		console.log(this.props);
+		this.client = new Client(this.props.id, this.props.username);
 		this.client.on("change",()=>this.forceUpdate());
 		this.selectedCards = [];
 
-		this.bot = new Bot();
+		this.bot = new Bot(this.client);
+
+		if (this.props.bot && this.props.bot !== 'false')
+			this.bot.start();
 	}
 	render(){
 		return react.createElement("div",{className:"game"},
@@ -19,7 +23,7 @@ module.exports = class Match extends react.Component{
 				return react.createElement("div",{key:i,className:"player"+(this.client.isActive(i) ? " active" : "")},
 					// For each player create a div with their name and score
 					(()=>{
-						if(!this.client.connected) return null; // why are they always connected?
+						if(!this.client.connected) return null;
 						var games = this.client.games||[];
 						var matchPoints = this.client.calculatePoints(games.slice(0,games.length-1));
 						var gamePoints = this.client.calculatePoints(games.slice(games.length-1));
@@ -43,11 +47,13 @@ module.exports = class Match extends react.Component{
 				)
 			):null,
 			(()=>{
+				if(!this.client.connected) return null;
 				if(this.bot.isPlaying)
 					return react.createElement("button", {className:"match-control", onClick:this.resumePlayerControl.bind(this)}, "Take control");
 				else
 					return react.createElement("button", {className:"match-control", onClick:this.handOverBot.bind(this)}, "Let the bot play");
 			})(),
+			react.createElement("button",{className:"match-control", onClick:this.returnToMatchlist.bind(this)}, "Return to matchlist"),
 			this.client.connected?null:"connecting..."
 		)
 	}
@@ -94,5 +100,9 @@ module.exports = class Match extends react.Component{
 	resumePlayerControl() {
 		this.bot.stop();
 		alert("Taking back manual control of the game");
+	}
+
+	returnToMatchlist() {
+		window.location.href = "/";
 	}
 }

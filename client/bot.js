@@ -65,7 +65,7 @@ module.exports = class Bot{
 				var highest_in_suit_on_board = this.highest(this.inSuit(led_suit, this.client.currentRound.cards));
 				return this.highestUnder(highest_in_suit_on_board.kind, this.inSuit(led_suit, cards));
 			} else {															// or if we dont have the lead suit
-				if (this.inSuit("heart", cards).length > 0)
+				if (typeof this.suit_counts['heart'] !== 'undefined' && cards.length !== 13) // play a heart if its OK
 					return this.highest(this.inSuit("heart", cards));
 				else
 					return this.highest(this.inSuit(this.lowest.suit, cards));

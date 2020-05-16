@@ -7,16 +7,19 @@ module.exports = class Bot{
 		this.isPlaying = false;
 		this.lowest = {};
 		this.suit_counts = {};
+		this.listener_reference = null;
 	}
 
 	start() {
-		this.client.on("change",this.play.bind(this)); // i used this instead of 'on' is it ok?
+		this.listener_reference = this.play.bind(this);
+		this.client.on("change", this.listener_reference);
 		this.isPlaying = true;
 		// https://github.com/microsoft/TypeScript/issues/32210#issue-463080936
 	}
 
 	stop() {
-		this.client.removeListener("change",this.play.bind(this));
+		this.client.removeListener("change", this.listener_reference);
+		this.listener_reference = null;
 		this.isPlaying = false;
 	}
 
@@ -209,8 +212,8 @@ module.exports = class Bot{
 			suit_counts[cards[i].color]++;
 		}
 
-		// remove hearts from analysis if its not broken
-		if (!this.client.currentGame.heartsBroken)
+		// remove hearts from analysis if its not broken or if first round
+		if (!this.client.currentGame.heartsBroken || cards.length === 13)
 			delete suit_counts["heart"];
 
 		// And mark which is the lowest...

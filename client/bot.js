@@ -38,7 +38,7 @@ module.exports = class Bot{
 
 	playCard(){
 		var card = this.pickCard(this.client.cards);
-		console.log("Bot decides to play: ", card);
+		console.log(this.getName() + " decides to play: ", card);
 		this.client.playCard(card);
 	}
 
@@ -60,7 +60,7 @@ module.exports = class Bot{
 		this.analyzeHand(cards);
 
 		if (this.inKind("2", this.inSuit("club", cards)).length === 1) { 	// if you have the two, play it
-			this.muse("The bot has to play the two of course.")
+			this.muse("I have to play the two of course!")
 			return this.inKind("2", this.inSuit("club", cards))[0];
 		}
 
@@ -76,8 +76,8 @@ module.exports = class Bot{
 				return this.highestUnder(highest_in_suit_on_board.kind, this.inSuit(led_suit, cards));
 			} else {															// or if we dont have the lead suit
 				this.muse("At least I'm void. Maybe I can dump a heart or something high in what I'm low in.")
-				if (typeof this.suit_counts['heart'] !== 'undefined' && cards.length !== 13) // play a heart if its OK
-					return this.highest(this.inSuit("heart", cards));
+				if (cards.length !== 13 && this.hasPoints(cards)) // if you're void in a suit and its not the first round you may break hearts
+					return (this.inKind("queen", this.inSuit("spade", cards)).length === 1) ? this.inKind("queen", this.inSuit("spade", cards))[0] : this.highest(this.inSuit("heart", cards));
 				else
 					return this.highest(this.inSuit(this.lowest.suit, cards));
 			}
@@ -87,7 +87,7 @@ module.exports = class Bot{
 	}
 
 	muse(msg) {
-		console.log(msg);
+		console.log(this.getName() + " thinks: [ "+msg+" ]");
 	}
 
 	kindToValue(kind) {
@@ -215,8 +215,12 @@ module.exports = class Bot{
 		return selected_card;
 	}
 
+	getName() {
+		return this.client.usernames[this.client.seat];
+	}
+
 	analyzeHand(cards) {
-		console.log("Bot is thinking...");
+		console.log(this.getName() + " is thinking...");
 		// this.sleep(500);
 		// Count my suits regardless
 		var suit_counts = {};
@@ -241,7 +245,7 @@ module.exports = class Bot{
 
 		this.suit_counts = suit_counts;
 		this.lowest = lowest;
-		console.log("Bot analyzed its hand. Suit counts and lowest: ", suit_counts, lowest);
+		this.muse("Let's see what's in my hand...");
 	}
 
 	isLeading() {
@@ -253,5 +257,14 @@ module.exports = class Bot{
 		var start = new Date().getTime(), expire = start + ms;
 		while (new Date().getTime() < expire) { }
 		return;
+	}
+
+	/**
+	 * do these cards contain hearts or the queen
+	 * @param cards
+	 * @returns {boolean}
+	 */
+	hasPoints(cards) {
+		return (this.inSuit("heart", cards).length > 0) || this.inKind("queen", this.inSuit("spade", cards)).length === 1;
 	}
 }

@@ -7,7 +7,6 @@ var Bot = require("./bot");
 module.exports = class Match extends react.Component{
 	constructor(p){
 		super(p);
-		console.log(this.props);
 		this.client = new Client(this.props.id, this.props.username);
 		this.client.on("change",()=>this.forceUpdate());
 		this.selectedCards = [];
@@ -33,10 +32,24 @@ module.exports = class Match extends react.Component{
 							matchPoints[i]+" ("+gamePoints[i]+")");
 					})(),
 					(()=>{
+						console.log("Trying to render cards...", this.client.stage);
 						if(this.client.stage !== "playing") return null;
 						var card = this.client.currentRound && this.client.currentRound.cards[(this.client.players+i-this.client.currentRound.startedBy)%this.client.players];
 						if(!card) return null;
 						return react.createElement(Card,{color:card.color,kind:card.kind,key:card.color+'-'+card.kind});
+					})(),
+					(()=>{
+						if(this.client.stage !== "over") return null;
+						return react.createElement("div",{className: "scoreboard"},
+							react.createElement("h3", {}, "GAME OVER - Congratulations winners:"),
+							this.client.winners.map(w =>
+								react.createElement("p", {}, this.renderUsername(w.index))
+							),
+							react.createElement("h4", {}, "and losers"),
+							this.client.losers.map(l =>
+								react.createElement("p", {}, this.renderUsername(l.index))
+							),
+						);
 					})()
 				)
 			})),
@@ -95,9 +108,8 @@ module.exports = class Match extends react.Component{
 	handOverBot() {
 		this.bot.start();
 		alert("Handing over control to the bot");
-		console.log("In the future, try running bots in an incognito/private window or on a separate browser session. When you refresh a match it loads your username from local browser storage, so if you're not careful you'll replace your session with the bots!");
+		console.info("In the future, try running bots in an incognito/private window or on a separate browser session. When you refresh a match it loads your username from local browser storage, so if you're not careful you'll replace your session with the bots!");
 		this.client.emit("change");
-		console.log(this.bot.isPlaying);
 	}
 
 	resumePlayerControl() {

@@ -58,7 +58,7 @@ module.exports = class Match extends EventEmitter{
 
 	passCards(player,cards){
 		if(this.stage !== "passing") throw new Error("Why are you passing cards when you should be " + this.stage);
-		if(this.players[player].passedCards) throw new Error("You already picked your cards - wait for everyone to finish up");
+		if(this.players[player].passedCards && this.players.filter(p=>p.passedCards).length !== this.players.length) throw new Error("You already picked your cards - wait for everyone to finish up");
 		if(cards.length !== 3) throw new Error("must pass exactly 3 cards");
 
 		for(var card of cards){
@@ -68,12 +68,25 @@ module.exports = class Match extends EventEmitter{
 
 		this.players[player].passedCards = cards;
 
-		if(this.players.filter(p=>p.passedCards).length === this.players.length){ // TODO PASS to the right person
-			var offset = this.games.length%this.players.length;
-			for(var i = 0; i < this.players.length; i++){
-				var passingPlayer = this.players[i];
-				var receivingPlayer = this.players[(i+offset)%this.players.length];
-				for(var card of passingPlayer.passedCards){
+		if(this.players.filter(p=>p.passedCards).length === this.players.length){ // if everyones passed their cards // TODO PASS to the right person
+			var offset = this.games.length%this.players.length; // are we in 0/1/2/3 (across, no pass, left, right) (oops we start on one! it would be nice it was easy)
+			for(var i = 0; i < this.players.length; i++){		// foreach player
+				var passingPlayer = this.players[i];			// that player will pass to someone
+				var receivingPlayer = {};
+
+				switch (offset) {
+					case 0: receivingPlayer = this.players[(i+2)%this.players.length]; break; 						// across
+					case 1: throw new Error("We're not passing this turn!");										// no pass!!
+					case 2: receivingPlayer = this.players[(i+1)%this.players.length]; break; 						// left
+					case 3: receivingPlayer = this.players[(i+(this.players.length-1))%this.players.length]; break; // right
+					default: throw new Error("Sorry, this is a four player game!");
+				}
+
+				if (typeof receivingPlayer.cards === 'undefined')
+					throw new Error("Hey, this guys got no cards!");
+
+				// var receivingPlayer = this.players[(i+offset)%this.players.length];	//
+				for (var card of passingPlayer.passedCards) { 	// hand em over!
 					passingPlayer.cards.splice(passingPlayer.cards.indexOf(card),1);
 					receivingPlayer.cards.push(card);
 				}
@@ -163,7 +176,7 @@ module.exports = class Match extends EventEmitter{
 						event:"matchOver"
 					})
 				}
-			}else{
+			} else {
 				this.currentRound = {
 					startedBy:this.currentRound.wonBy,
 					cards:[],
@@ -217,7 +230,7 @@ module.exports = class Match extends EventEmitter{
 					switch(msg.action){
 						case "passCards":
 							if(!(msg.cards instanceof Array)) throw new Error("You have to pass three cards.");
-							this.passCards(seat,msg.cards.map(this.mapCard.bind(this))); // what goes where to who what now?
+							this.passCards(seat,msg.cards.map(this.mapCard.bind(this)));
 							break;
 						case "playCard":
 							this.playCard(seat,this.mapCard(msg.card));

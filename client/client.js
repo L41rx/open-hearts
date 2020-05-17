@@ -48,7 +48,6 @@ module.exports = class HeartsClient extends EventEmitter{
 					break;
 				case "heartsBroken":
 					this.currentGame.heartsBroken = true;
-					this.emit("change");
 					break;
 				case "playedCard":
 					this.currentRound.cards.push(data.card);
@@ -72,10 +71,10 @@ module.exports = class HeartsClient extends EventEmitter{
 							var playerPoints = this.calculatePoints(this.games);
 							if(!playerPoints.filter(p=>p>=100).length){
 								// game is still on
-							}else{
-								this.stage = "over";
+							} else {
+								this.stage = "over"; // its done wow! start a new one., or, restart lobby?
 							}
-						}else{
+						} else {
 							this.currentGame.rounds.push(this.currentRound = {
 								startedBy:this.currentRound.wonBy,
 								cards:[],
@@ -94,7 +93,7 @@ module.exports = class HeartsClient extends EventEmitter{
 					this.usernames[data.seat] = null;
 					this.emit("change");
 					break;
-				case "error":
+				case "error": // probably set error status = true, msg = data.message, forceUpdate, render, close on 'x', forceUpdate
 					alert(data.message);
 					break;
 			}

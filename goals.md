@@ -26,3 +26,7 @@ friendlier errors with explanations
 
 test -----
 
+
+
+BOTS DONT GET CLIENTS
+they cant cause they live on the server

@@ -15,10 +15,13 @@ module.exports = class Match extends EventEmitter{
 			{}
 		];
 		this.games = [];
+		this.stage = null;
+		this.passDirection = null;
 		this.deal();
 	}
 
 	deal(){
+		this.currentRound = null;
 		var cards = this.cards.slice(0);
 		var shuffledCards = [];
 		while(cards.length){
@@ -30,25 +33,32 @@ module.exports = class Match extends EventEmitter{
 		}
 		this.currentGame = {rounds:[], heartsBroken: false};
 		this.games.push(this.currentGame);
-		if(this.games.length%this.players.length){
-			this.stage = "playing";
+		if (this.games.length % this.players.length === 1) {	// go straight to playing on first round
+			this.stage = "playing"; // if it playing, push a new trick onto the stack (who goes first? left of dealer...)
 			this.currentGame.rounds.push(this.currentRound = {startedBy:this.findGameStarter(),cards:[],wonBy:null})
-		}else{
+			this.passDirection = null;
+		} else { // otherwise do some passing first
 			this.stage = "passing";
+			switch (this.games.length % this.players.length) {
+				case 2: this.passDirection = "left"; break;
+				case 3: this.passDirection = "right"; break;
+				case 0: this.passDirection = "across"; break;
+			}
 		}
 
-		for(var player of this.players){
+		for (var player of this.players) { // tell everyone we started a new game
 			this.notifyPlayer(player,{
-				event:"newGame",
-				cards:player.cards,
-				startedBy: this.stage==="playing"?this.currentRound.startedBy:undefined
+				event: "newGame",
+				cards: player.cards,
+				startedBy: this.stage === "playing" && this.currentRound !== null ? this.currentRound.startedBy : undefined, // a.k.a. newgame lets us know if its started or not? (??) weird if passing.
+				stage: this.stage	// also pass the stage because why not?
 			});
 		}
 	}
 
 	passCards(player,cards){
-		if(this.stage !== "passing") throw new Error("game is not in passing stage");
-		if(this.players[player].passedCards) throw new Error("player already has passed cards for this round");
+		if(this.stage !== "passing") throw new Error("Why are you passing cards when you should be " + this.stage);
+		if(this.players[player].passedCards) throw new Error("You already picked your cards - wait for everyone to finish up");
 		if(cards.length !== 3) throw new Error("must pass exactly 3 cards");
 
 		for(var card of cards){
@@ -58,7 +68,7 @@ module.exports = class Match extends EventEmitter{
 
 		this.players[player].passedCards = cards;
 
-		if(this.players.filter(p=>p.passedCards).length === this.players.length){
+		if(this.players.filter(p=>p.passedCards).length === this.players.length){ // TODO PASS to the right person
 			var offset = this.games.length%this.players.length;
 			for(var i = 0; i < this.players.length; i++){
 				var passingPlayer = this.players[i];
@@ -132,7 +142,7 @@ module.exports = class Match extends EventEmitter{
 			}
 			this.currentRound.wonBy = (this.currentRound.startedBy+highest)%this.players.length;
 
-			if(this.players.map(p=>p.cards.length).reduce((a,b)=>a+b,0) === 0){
+			if(this.players.map(p=>p.cards.length).reduce((a,b)=>a+b,0) === 0){ // ??? magic
 				var playerPoints = this.players.map((p,i)=>
 					this.games.map(g=>{
 						var playerPoints = this.players.map((p,i)=>
@@ -144,9 +154,10 @@ module.exports = class Match extends EventEmitter{
 						return victoryPlayer < 0?playerPoints[i]:(victoryPlayer===i?0:26);
 					}).reduce((a,b)=>a+b,0)
 				)
-				if(!playerPoints.filter(p=>p>=100).length){
+
+				if (!playerPoints.filter(p=>p>=100).length) { // if the game is not over deal a new game
 					this.deal();
-				}else{
+				} else {
 					this.stage = "over";
 					this.notifyPlayers({
 						event:"matchOver"
@@ -205,8 +216,8 @@ module.exports = class Match extends EventEmitter{
 					msg = JSON.parse(msg);
 					switch(msg.action){
 						case "passCards":
-							if(!(msg.cards instanceof Array)) throw new Error("cards must be an array");
-							this.passCards(seat,msg.cards.map(this.mapCard.bind(this)));
+							if(!(msg.cards instanceof Array)) throw new Error("You have to pass three cards.");
+							this.passCards(seat,msg.cards.map(this.mapCard.bind(this))); // what goes where to who what now?
 							break;
 						case "playCard":
 							this.playCard(seat,this.mapCard(msg.card));

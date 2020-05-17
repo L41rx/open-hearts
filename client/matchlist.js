@@ -27,7 +27,7 @@ module.exports = class MatchList extends react.Component{
 					)
 				),
 				react.createElement("tbody",{}, (this.matches||[]).map(m=> // loop matches
-					react.createElement("tr",{onClick:this.joinGame.bind(this,m.id)},
+					react.createElement("tr",{onClick:this.joinGame.bind(this,m.id,localStorage["username"]||"Lain")},
 						react.createElement("td",{},m.players+"/4"),
 						react.createElement("td",{},m.game+"")
 					)

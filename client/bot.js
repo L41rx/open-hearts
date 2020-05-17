@@ -8,6 +8,7 @@ module.exports = class Bot{
 		this.lowest = {};
 		this.suit_counts = {};
 		this.listener_reference = null;
+		this.selectedCards = [];
 	}
 
 	start() {
@@ -21,13 +22,15 @@ module.exports = class Bot{
 		this.client.removeListener("change", this.listener_reference);
 		this.listener_reference = null;
 		this.isPlaying = false;
+		this.selectedCards = [];
 	}
 
 	play(){
 		if (!this.client.connected) return;
-		if (this.client.stage === "passing") {
+		if (this.client.stage === "passing" && this.selectedCards.length !== 3) {
 			this.passCards();
 		} else if(this.client.stage === "playing") {
+			this.selectedCards = [];
 			if (!this.isPlayersTurn()) return;
 			this.playCard();
 		}
@@ -40,31 +43,39 @@ module.exports = class Bot{
 	}
 
 	passCards(){
-		var cards = this.client.cards.slice(0).sort((a,b)=>allCards.kinds.indexOf(a.kind)-allCards.kinds.indexOf(b.kind));
-		var selectedCards = [];
+		this.selectedCards = [];
+		var cards = this.client.cards.slice(0).sort((a,b)=>allCards.kinds.indexOf(b.kind)-allCards.kinds.indexOf(a.kind)); // sort by highest?
 
-		while(selectedCards.length < 3){
+		while(this.selectedCards.length < 3){ // push the three highest on
 			var card = this.pickCard(cards);
-			selectedCards.push(cards.splice(card,1)[0]);
+			this.selectedCards.push(cards.splice(card,1)[0]);
 		}
 
-		this.client.passCards(selectedCards);
+		this.client.emit("change");
+
+		this.client.passCards(this.selectedCards);
 	}
 
 	pickCard(cards) {
 		this.analyzeHand(cards);
 
-		if (this.inKind("2", this.inSuit("club", cards)).length === 1) 	// if you have the two, play it
-			return this.inKind("2", this.inSuit("club", cards))[0]
+		if (this.inKind("2", this.inSuit("club", cards)).length === 1) { 	// if you have the two, play it
+			this.muse("The bot has to play the two of course.")
+			return this.inKind("2", this.inSuit("club", cards))[0];
+		}
 
 		if (this.isLeading()) {													// if we're leading...
+			this.muse("I get to choose? Better play something from my lowest suit, "+this.lowest.suit+"s.");
 			return this.random(this.inSuit(this.lowest.suit, cards)); 			// Lead a random card in the suit with the lowest count !
 		} else { 																// if we're following the led suit
 			var led_suit = this.client.currentRound.cards[0].color;
+			this.muse("Have to play "+led_suit+"s...");
 			if (typeof this.suit_counts[led_suit] !== 'undefined') {			// and we have the lead suit...
 				var highest_in_suit_on_board = this.highest(this.inSuit(led_suit, this.client.currentRound.cards));
+				this.muse("Looks like I have to slide under the " + highest_in_suit_on_board.kind);
 				return this.highestUnder(highest_in_suit_on_board.kind, this.inSuit(led_suit, cards));
 			} else {															// or if we dont have the lead suit
+				this.muse("At least I'm void. Maybe I can dump a heart or something high in what I'm low in.")
 				if (typeof this.suit_counts['heart'] !== 'undefined' && cards.length !== 13) // play a heart if its OK
 					return this.highest(this.inSuit("heart", cards));
 				else
@@ -73,6 +84,10 @@ module.exports = class Bot{
 		}
 
 		return this.random(cards); //  if for some reason it fails return a random card
+	}
+
+	muse(msg) {
+		console.log(msg);
 	}
 
 	kindToValue(kind) {
@@ -186,17 +201,16 @@ module.exports = class Bot{
 	 * @returns {undefined}
 	 */
 	highestUnder(kind, cards) {
-		var selected_card = cards[0];
+		var selected_card = null;
 
 		for (var i = 0; i < cards.length; i++) {
-			// is selected card over higher than kind, but this is lower? take it
-			if (this.kindToValue(selected_card.kind) > this.kindToValue(kind) && this.kindToValue(cards[i].kind) < this.kindToValue(selected_card.kind))
-				selected_card = cards[i];
-
-			// Otherwise, is selected card kind lower (good), and this one is higher?
-			if (this.kindToValue(selected_card.kind) < this.kindToValue(kind) && this.kindToValue(cards[i].kind) > this.kindToValue(selected_card.kind))
+			// is it lower than the limit, and higher-est?
+			if (this.kindToValue(cards[i].kind) < this.kindToValue(kind) && (selected_card === null || this.kindToValue(cards[i].kind) > this.kindToValue(selected_card.kind)))
 				selected_card = cards[i];
 		}
+
+		if (selected_card === null)
+			return this.random(cards); // well, guess you cant slide under..
 
 		return selected_card;
 	}
@@ -212,8 +226,8 @@ module.exports = class Bot{
 			suit_counts[cards[i].color]++;
 		}
 
-		// remove hearts from analysis if its not broken or if first round
-		if (!this.client.currentGame.heartsBroken || cards.length === 13)
+		// if the entire hand isnt hearts... AND (hearts isnt broken or its the first round
+		if (this.inSuit("heart", cards).length !== cards.length && (!this.client.currentGame.heartsBroken || cards.length === 13))
 			delete suit_counts["heart"];
 
 		// And mark which is the lowest...

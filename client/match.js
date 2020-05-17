@@ -40,10 +40,10 @@ module.exports = class Match extends react.Component{
 					})()
 				)
 			})),
-			this.client.stage === "passing"?react.createElement("h2",{},"Pass 3 cards to "+this.renderUsername((this.client.seat+this.client.games.length)%this.client.players)):null,
+			this.client.stage === "passing"?react.createElement("h2",{},"Pass 3 cards to "+this.renderUsername(this.getUsernameByPassDirection())):null,
 			this.client.connected?react.createElement("div",{className:"hand"}, // this is the hand!!
 				this.sortCards(this.client.cards).map(c=>
-					react.createElement(Card,{color:c.color,kind:c.kind,className:(this.selectedCards.includes(c)?"active":""),onClick:this.clickCard.bind(this,c), key:c.color+'-'+c.kind})
+					react.createElement(Card,{color:c.color,kind:c.kind,className:(this.selectedCards.includes(c)||this.bot.selectedCards.includes(c)?"active":""),onClick:this.clickCard.bind(this,c), key:c.color+'-'+c.kind})
 				)
 			):null,
 			(()=>{
@@ -59,7 +59,8 @@ module.exports = class Match extends react.Component{
 	}
 
 	renderUsername(user){
-		return (user+1)+": "+(this.client.usernames[user]||"")
+		// return (user+1)+": "+(this.client.usernames[user]||"")
+		return this.client.usernames[user]||"";
 	}
 
 	sortCards(cards){
@@ -107,5 +108,18 @@ module.exports = class Match extends react.Component{
 
 	returnToMatchlist() {
 		window.location.href = "/";
+	}
+
+	/**
+	 * this actually gets the index of it, not the name
+	 * @returns {number}
+	 */
+	getUsernameByPassDirection() {
+		switch (this.client.games.length % this.client.players) {
+			case 1: return this.client.seat;
+			case 2: return (this.client.seat + 1) % this.client.players; // left
+			case 3: return ((this.client.seat + this.client.players) - 1) % this.client.players; // right
+			case 0: return (this.client.seat + 2) % this.client.players; // across
+		}
 	}
 }

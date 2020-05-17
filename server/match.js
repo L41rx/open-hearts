@@ -5,8 +5,16 @@ var Bot = require("../client/bot");
 var beginningCard = allCards.filter(c=>c.color==="club"&&c.kind==="2")[0];
 
 module.exports = class Match extends EventEmitter{
-	constructor(){
+	constructor(name, points_to_end, moon_bonus_up, moon_bonus_down, pass_order, started_by) {
 		super();
+
+		this.name = name;
+		this.points_to_end = points_to_end;
+		this.moon_bonus_down = moon_bonus_down;
+		this.moon_bonus_up = moon_bonus_up;
+		this.pass_order = pass_order;
+		this.started_by = started_by;
+
 		this.cards = allCards.slice();
 		this.players = [
 			{},
@@ -17,6 +25,7 @@ module.exports = class Match extends EventEmitter{
 		this.games = [];
 		this.stage = null;
 		this.passDirection = null;
+
 		this.deal();
 	}
 

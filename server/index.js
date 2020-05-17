@@ -3,6 +3,7 @@ var mount = require("koa-mount");
 var compose = require("koa-compose");
 var Static = require("koa-static");
 var route = require("koa-route");
+var bodyParser = require('koa-bodyparser');
 var upgrade = require("koa-upgrade");
 var browserify = require("browserify");
 var watchify = require("watchify");
@@ -39,6 +40,7 @@ function getParameterByName(name, url) {;
 
 var app = new Koa();
 upgrade(app);
+app.use(bodyParser());
 app.use(mount("/public/cardsJS",Static("./node_modules/cardsJS/dist")))
 app.use(mount("/public/bootstrap",Static("./node_modules/bootstrap/dist")))
 app.use(mount("/public",Static("./public")));
@@ -91,15 +93,30 @@ app.use(
 				var match = matches[id];
 				return {
 					id: id,
-					players:match.players.filter(p=>p.connection).length,
-					game:match.games.length
+					players: match.players.filter(p=>p.connection).length,
+					game: match.games.length,
+					name: match.name,
+					points_to_end: match.points_to_end,
+					moon_bonus_up: match.moon_bonus_up,
+					moon_bonus_down: match.moon_bonus_down,
+					pass_order: match.pass_order,
+					started_by: match.started_by
 				}
 			}))
 		}),
 		// create new match...
-		route.post("/api/matches",async ctx=>{
+		route.post("/api/matches", async ctx => {
 			var id = new Date().getTime();
-			var match = new Match();
+
+			var match = new Match(
+				ctx.request.body.name,
+				ctx.request.body.points_to_end,
+				ctx.request.body.moon_bonus_up,
+				ctx.request.body.moon_bonus_down,
+				ctx.request.body.pass_order,
+				ctx.request.body.started_by,
+			);
+
 			matches[id] = match;
 			match.once("close",()=>{
 				delete matches[id];

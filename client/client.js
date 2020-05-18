@@ -2,13 +2,13 @@ var EventEmitter = require("events").EventEmitter;
 var allCards = require("../server/cards");
 
 module.exports = class HeartsClient extends EventEmitter{
-	constructor(id,username){
+	constructor(id, username, avatar){
 		super();
 		this.connected = false;
 		this.connection = new WebSocket((location.protocol==="https:"?"wss":"ws")+"://"+location.host+"/api/matches/"+id); // socket is ID indexed by game
 		this.delay = Promise.resolve(true);
 		this.connection.onopen = ()=>{
-			this.connection.send(JSON.stringify({action:"takeSeat",username:username})); // when the client constructs it sends the takeSeat event with username
+			this.connection.send(JSON.stringify({action:"takeSeat",username:username, avatar: avatar})); // when the client constructs it sends the takeSeat event with username
 		}
 		this.connection.onmessage = async msg=>{ // listen for message from server
 			await this.delay;
@@ -20,6 +20,7 @@ module.exports = class HeartsClient extends EventEmitter{
 					this.stage = data.stage;
 					this.players = data.players;
 					this.usernames = data.usernames;
+					this.avatars = data.avatars;
 					this.cards = data.cards;
 					this.games = data.games;
 					this.currentGame = this.games[this.games.length-1];
@@ -86,11 +87,12 @@ module.exports = class HeartsClient extends EventEmitter{
 					break;
 				case "seatTaken":
 					this.usernames[data.seat] = data.username;
-					// console.log(data.connection);
+					this.avatars[data.seat] = data.avatar;
 					this.emit("change");
 					break;
 				case "seatLeft":
 					this.usernames[data.seat] = null;
+					this.avatars[data.seat] = null;
 					this.emit("change");
 					break;
 				case "error": // probably set error status = true, msg = data.message, forceUpdate, render, close on 'x', forceUpdate

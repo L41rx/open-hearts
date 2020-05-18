@@ -1,62 +1,141 @@
-html,body{
-	margin:0px;
-	padding:0px;
-	font-family: sans-serif;
-	color:white;
+html, body {
+	background: black;
+	color: white;
+	margin: 0;
+	padding: 0;
+	font-family: monospace;
+	letter-spacing: 1.4px;
 }
-.game{
-	clear:both;
-	width:calc(100vw - 40px);
-	height:calc(100vh - 40px);
-	padding: 20px;
+
+body {
+	padding: 25px;
+	min-height: calc(100vh - 50px);
+}
+
+h2, h3 {
+	margin: 0;
+}
+
+
+#container, .game, .board{
+	position: relative;
+	min-height: calc(100vh - 50px);
+}
+
+
+.avatar {
+	height: 40px;
+	width: 40px;
+	margin-right: 5px;
+}
+
+.player {
 	display: flex;
-	flex-direction: column;
-	align-items: center;
-	background:green;
+	position: absolute;
+	padding: 3px;
 }
-.table{
-	flex:1;
-	position:relative;
-	text-align: center;
+
+.player.active {
+	box-shadow: 0 0 0 3px red;
 }
-.hand{
-	margin:auto;
-	text-align: center;
-	display: inline-block;
-	padding-bottom: 50px;
-	padding-top:50px;
-	overflow: hidden;
+
+.player.left {
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
 }
-.player{
-	height:200;
-	width:200px;
-	text-align: center;
-	display: inline-block;
-	vertical-align: top;
+
+.player.right {
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
 }
-.player.active h1{
-	color:yellow;
+
+.player.top {
+	top: 0;
+	right: 50%;
+	transform: translateX(-50%);
 }
+
+.player.bottom {
+	bottom: 90px;
+	left: 70%;
+}
+
+.player .card {
+	position: absolute;
+}
+
+.player.bottom .card {
+	top: -300px;
+	right: 330px;
+}
+
+.player.top .card {
+	top: 70px;
+	left: -42px;
+}
+
+.player.left .card {
+	top: -80px;
+	right: -370px;
+}
+
+.player.right .card {
+	top: -80px;
+	left: -370px;
+}
+
+.hand {
+	position: absolute;
+	right: 32%;
+	bottom: 0;
+	margin: 0;
+	padding: 0;
+
+}
+
+
+
+.card {
+	z-index: 100;
+}
+
+.scoreboard {
+	max-width: 295px;
+	margin-top: 10px;
+}
+
+.board-row {
+	display: flex;
+	justify-content: space-between;
+}
+
+.board-row p {
+	margin: 0;
+}
+
+.board-title p {
+	text-align: right;
+	width: 100%;
+	font-weight: bolder;
+	margin-bottom: 3px;
+}
+
+/****/
 
 img.card{
 	position: relative;
 	width:150px;
 }
+
 img.card.active{
 	top:-30px;
 }
+
 .hand .card{
 	margin-left: -100px;
 }
 .hand .card:first-child{
-	margin-left:0px;
-}
-h2{
-	color:white;
-	width:100%;
-	text-align:center;
-}
-
-.match-control {
-	max-width: 100px;
+	margin-left: 0;
 }

@@ -204,8 +204,14 @@ module.exports = class Match extends EventEmitter{
 				connection.send(JSON.stringify({event:"error",message:"Welcome to the game. Maybe take a seat first?"}));
 				connection.close();
 			}
+
 			if(typeof msg.username != "string" || msg.username.length < 1 || msg.username.length > 50){
 				connection.send(JSON.stringify({event:"error",message:"Your name doesn't make any sense. Could you pick a better one?"}));
+				connection.close();
+			}
+
+			if(typeof msg.avatar != "string" || msg.avatar.length < 1) {
+				connection.send(JSON.stringify({event:"error",message:"Your picture doesn't make any sense. Could you pick a better one?"}));
 				connection.close();
 			}
 
@@ -216,17 +222,20 @@ module.exports = class Match extends EventEmitter{
 				return;
 			}
 			this.players[seat].username = msg.username;
+			this.players[seat].avatar = msg.avatar;
 
 			this.notifyPlayers({
 				event:"seatTaken",
 				seat:seat,
-				username:msg.username
+				username:msg.username,
+				avatar:msg.avatar,
 				//connection: connection // i am here
 			});
 			this.players[seat].connection = connection;
 			connection.on("close",()=>{ // listen for more events from this connection too
 				delete this.players[seat].connection;
 				delete this.players[seat].username;
+				delete this.players[seat].avatar;
 				this.notifyPlayers({
 					event:"seatLeft",
 					seat:seat
@@ -258,7 +267,8 @@ module.exports = class Match extends EventEmitter{
 				cards:this.players[seat].cards,
 				games:this.games,
 				players:this.players.length,
-				usernames:this.players.map(u=>u.username)
+				usernames:this.players.map(u=>u.username),
+				avatars:this.players.map(u=>u.avatar)
 			});
 		});
 	}

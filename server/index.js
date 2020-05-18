@@ -66,11 +66,13 @@ app.use(
 		}),
 		route.get("/matches/:match",async (ctx,match)=>{ // just joining a match
 			var username = getParameterByName("username", ctx.request.url);
+			var avatar = getParameterByName("avatar", ctx.request.url);
 			var bot = getParameterByName("bot", ctx.request.url);
 
 			if (bot === null || bot === "false") bot = false;
 			if (bot === "true") bot = true;
-			if (username === null) username = "Lain";
+			if (username === null) username = "lain";
+			if (avatar === null) avatar = "https://lainsafe.duckdns.org/files/ofsgNgof.png";
 
 			ctx.body =
 `<html>
@@ -82,7 +84,7 @@ app.use(
 	<body>
 		<div id="container"></div>
 		<script>
-			reactDom.render([react.createElement(Match,{id:"${match}", username:"${username}", bot:"${bot}", key:"${match}"})],document.getElementById("container"));
+			reactDom.render([react.createElement(Match,{id:"${match}", username:"${username}", avatar:"${avatar}", bot:"${bot}", key:"${match}"})],document.getElementById("container"));
 		</script>
 	</body>
 </html>`;

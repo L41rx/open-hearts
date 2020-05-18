@@ -23,7 +23,7 @@ module.exports = class MatchList extends react.Component{
 					react.createElement("button",{className: "game-refresh", onClick:this.loadGames.bind(this)},"refresh games"),
 					react.createElement("div", {className: "game-list"},
 						(this.matches||[]).map(m=> // loop matches
-							react.createElement("div",{className: "join-game", onClick:this.joinGame.bind(this,m.id,this.user.username,this.user.avatar)},
+							react.createElement("div",{className: "join-game", onClick:this.joinGame.bind(this,m.id)},
 								react.createElement("p", {className: "started-by"}, "Game started by "+m.started_by),
 								react.createElement("p",{className: "game-name"}, ""+m.name),
 								react.createElement("p",{className: "player-count"},m.players+"/4")
@@ -58,6 +58,8 @@ module.exports = class MatchList extends react.Component{
 	 * @returns {Promise<void>}
 	 */
 	async joinGame(id, username, avatar) {
+		username = typeof username === 'string' ? username : this.user.username;
+		avatar = typeof avatar === 'string' ? avatar : this.user.avatar;
 		location = "/matches/"+id+"?username="+username+"&avatar="+avatar;
 	}
 

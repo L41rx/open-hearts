@@ -1,0 +1,139 @@
+html, body {
+    background: black;
+    color: white;
+    margin: 0;
+    padding: 0;
+    font-family: monospace;
+    letter-spacing: 1.4px;
+}
+
+body {
+    padding: 25px;
+    min-height: calc(100vh - 50px);
+}
+
+h2, h3 {
+    margin: 0;
+}
+
+.home {
+    max-width: 740px;
+    margin: 0 auto;
+}
+
+
+
+.player-editor {
+    display: flex;
+    padding: 0 0 20px 0;
+    margin: 0 0 20px 0;
+    border-bottom: 3px dotted cyan;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    margin-right: 20px;
+}
+
+.inputs {
+    padding-top: 18px;
+}
+
+.game-property label, .game-property input, .inputs label, .inputs input {
+    display: inline-block;
+}
+
+.game-property label {
+    margin-left: 10px;
+    width: 160px;
+}
+
+.inputs label {
+    width: 100px;
+}
+
+.game-property input {
+    width: 100px;
+}
+
+.inputs input {
+    width: 200px;
+}
+
+.game-property input, .inputs input {
+    background: none;
+    border: none;
+    border-bottom: 1px solid white;
+}
+
+button {
+    background: black;
+    box-shadow: 0 0 0 2px white;
+    padding: 3px 6px;
+}
+
+button:hover {
+    cursor: pointer;
+    box-shadow: 0 0 0 4px white;
+}
+
+.create-game {
+    margin: 10px 15px 0 0;
+}
+
+.create-bot-game {
+    margin: 10px 0 0 0;
+}
+
+
+/******/
+
+.game-related {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.games-container {
+    min-width: 400px;
+    position: relative;
+}
+
+.game-list {
+    margin-top: 30px;
+}
+
+.game-refresh {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+}
+
+.join-game p {
+    margin: 0;
+}
+
+.join-game {
+    position: relative;
+}
+
+.join-game:hover {
+    cursor: pointer;
+    box-shadow: 0 0 0 3px white;
+}
+
+.player-count {
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: larger;
+}
+
+.new-game-container {
+    padding-right: 25px;
+    margin: 0 25px 25px 0;
+    border-right: red 2px dashed;
+}

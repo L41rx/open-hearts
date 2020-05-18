@@ -18,13 +18,13 @@ module.exports = class NewGameForm extends react.Component{
     render() {
         var property_names = [this.name, this.points_to_end, this.moon_bonus_up, this.moon_bonus_down, this.pass_order];
 
-        return react.createElement("div", null,
+        return react.createElement("div", {className: "new-game-container"},
             react.createElement("h2", null, "new game"),
             react.createElement("div", {className: "new-game", id: this.form_id},
                 property_names.map((property, index) => {
                     return react.createElement("div", {className: "game-property", key: index},
-                        react.createElement("label", {htmlFor: property.id}, property.text),
                         react.createElement("input", {id: property.id, name: property.id, defaultValue: property.def, type: property.type, onChange: (v) => this[property.id].value = v.target.value}),
+                        react.createElement("label", {htmlFor: property.id}, property.text)
                     );
                 }),
                 react.createElement("button",{className:"button create-game", onClick: this.newGame.bind(this)}, "new game"),

@@ -12,6 +12,7 @@ module.exports = class PlayerEditor extends react.Component{
             react.createElement("div", {className: "inputs"},
                 react.createElement("label", {htmlFor: "username"}, "username"),
                 react.createElement("input",{type: "text", id: "username", defaultValue: this.user.username, onChange:v=>{localStorage["username"] = v.target.value; this.user.username = v.target.value; this.forceUpdate()}}),
+                react.createElement("br"),
                 react.createElement("label", {htmlFor: "avatar"}, "avatar url"),
                 react.createElement("input",{type: "text", id: "avatar", defaultValue: this.user.avatar, onChange:v=>{localStorage["avatar"] = v.target.value; this.user.avatar = v.target.value; this.forceUpdate()}})
             )

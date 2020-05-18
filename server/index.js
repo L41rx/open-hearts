@@ -42,7 +42,6 @@ var app = new Koa();
 upgrade(app);
 app.use(bodyParser());
 app.use(mount("/public/cardsJS",Static("./node_modules/cardsJS/dist")))
-app.use(mount("/public/bootstrap",Static("./node_modules/bootstrap/dist")))
 app.use(mount("/public",Static("./public")));
 app.use(
 	compose([
@@ -53,7 +52,7 @@ app.use(
 			ctx.body =
 `<html>
 	<head>
-		<link rel="stylesheet" href="/public/bootstrap/css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="/public/matchlist.css"/>
 		<script src="/client.js"></script>
 	</head>
 	<body>
